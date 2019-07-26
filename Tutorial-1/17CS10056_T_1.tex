@@ -1,0 +1,460 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{fullpage}
+\usepackage[top=2cm, bottom=4.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
+\usepackage{lastpage}
+\usepackage{enumerate}
+\usepackage{fancyhdr}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{physics}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage[options ]{algorithm2e}
+\usepackage{multicol}
+
+\ruled
+\LinesNumbered
+\def\infinity{\rotatebox{90}{8}}
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+
+\hypersetup{%
+  colorlinks=true,
+  linkcolor=blue,
+  linkbordercolor={0 0 1}
+}
+
+\renewcommand\lstlistingname{Algorithm}
+\renewcommand\lstlistlistingname{Algorithms}
+\def\lstlistingautorefname{Alg.}
+
+\lstdefinestyle{Python}{
+    language        = Python,
+    frame           = lines,
+    basicstyle      = \footnotesize,
+    keywordstyle    = \color{blue},
+    stringstyle     = \color{green},
+    commentstyle    = \color{red}\ttfamily
+}
+
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+
+% Edit these as appropriate
+\newcommand\course{Algorithms II}
+\newcommand\hwnumber{1}
+
+\pagestyle{fancyplain}
+\headheight 35pt
+\lhead{17CS10056 \\ Ayush Tiwari}                 % <-- Comment this line out for problem sets (make sure you are person #1)
+\chead{\textbf{\Large Tutorial \hwnumber}}
+\rhead{\course \\ July 17, 2019}
+\lfoot{}
+\cfoot{}
+\rfoot{\small\thepage}
+\headsep 1.5em
+
+\begin{document}
+
+\section*{Problem Statement}
+    $A[1..m]$ and $B[1..n]$ are two 1D arrays containing $m$ and $n$ integers
+    respectively, where $m\le n$.
+    We need to construct a sub-array $Z[1..m]$ of $B$ such that
+    $\sum\limits_{i=1}^{m} \big|A[i]-Z[i]\big|$ is minimized.
+\section*{Recurrences}
+
+$X(i, j)$ is the minimum value of $\sum\limits_{k=1}^{i} \big|A[i]-Z[i]\big|$ for the for the arrays $A\textsubscript{1..i}$ and $B\textsubscript{1..j}$
+\begin{equation*}
+    X(i,j) = \left\{\begin{array}{lr}
+        0, & \text{for } i = 0\\
+        \infinity \qquad & \text{for }  j < i \\
+        min(\left| B\textsubscript{j} - A\textsubscript{i} \right| + X(i-1, j-1), X(i, j-1)) \qquad & \text{for }  i \leq j \leq n-m+i
+        \end{array}\right\}
+\end{equation*}
+
+\section*{Algorithm}
+
+    In a brute force approach to solving the Best Subarray Problem, we
+    would enumerate all the subsequences of the array $B$ and loop over all of these keeping track of the sequence that results in the minimum sum of differences.\\
+    It can easily seen that this problem has an optimal substructure property. For example, two contending subsequences might only differ by one element, but we end up looping over all the elements to calculate the sum of difference.
+
+    \subsection*{Optimal Substructure of the Best Sub Array Problem}
+        \begin{intro}
+            Let $A = \langle a\textsubscript{1}, a\textsubscript{2}, a\textsubscript{3}, ... a\textsubscript{m} \rangle$,
+            $B = \langle b\textsubscript{1}, b\textsubscript{2}, b\textsubscript{3}, ... b\textsubscript{n} \rangle$
+            and $m \leq n$ \\
+            Let $Z = \langle a\textsubscript{1}, a\textsubscript{2}, a\textsubscript{3}, ... a\textsubscript{m} \rangle$ be the Best Subarray of A and B.
+        \end{intro}
+        \begin{enumerate}
+            \item If $z\textsubscript{k} = b\textsubscript{n}$ then $Z\textsubscript{1..k-1}$ must the Best Subarray of $A\textsubscript{1..m-1}$ and $B\textsubscript{1..n-1}$
+            \item If $z\textsubscript{k} \neq b\textsubscript{n}$ then Z is the Best Subarray of A and $B\textsubscript{1..n-1}$
+        \end{enumerate}
+
+        \subsubsection*{Proof}
+
+        \begingroup
+            \fontsize{10pt}{12pt}\selectfont
+
+            \begin{enumerate}
+                \item If $z\textsubscript{k} = b\textsubscript{n}$, $\big | a_n - z_n \big |$ must have contributed to the sum, so we are left with the elements to the left of $b_n$ and to the left of $a_n$. If $Z\textsubscript{1..k-1}$ is not the Best Subarray of $A\textsubscript{1..m-1}$ then we could find $Z'\textsubscript{1..k-1}$ for which $\sum\limits_{i=1}^{m-1} \big|A[i]-Z[i]\big|$ is lesser and add it to $\big | a_n - z_n \big |$, thereby finding a better solution, which is a contradiction since $Z$ is the Best Subarray.
+
+                \item This is obvious because if we cannot include $b\textsubscript{n}$ in $Z$ then $Z$ must be the Best Subarray of $A$ and $B\textsubscript{1..n-1}$.\\
+            \end{enumerate}
+
+        \endgroup
+
+
+    \section*{Psuedocodes}
+        \begin{algorithm}[H]
+            \DontPrintSemicolon
+            \KwData{Array $B$ of length $n$ and Array $A$ of length $m \leq n$}
+            \KwResult{$sum = \sum\limits_{i=1}^{m} \big|A[i]-Z[i]\big|$}
+            \Begin{
+              $X, Y \longleftarrow $\ Matrix of dimension $m+1 \times n+1$ \;
+              $i, j \longleftarrow 0$
+
+              \For{$i \leq m$}{
+                    \For{$j \leq n-m+i$}{
+                        \uIf{$i = 0$}{
+                            $ X[i, j] = 0$\;
+                        }
+                        \uElseIf{$j < i$}{
+                            $ X[i, j] = \big \infinity$\;
+                        }
+                        \Else{
+                            \uIf{$\left| B\textsubscript{j} - A\textsubscript{i} \right| + X[i-1, j-1] < X[i, j-1]$}{
+                                $X[i, j] \longleftarrow \left| B\textsubscript{j} - A\textsubscript{i} \right| + X[i-1, j-1]$ \;
+                                $Y[i, j] \longleftarrow '\nwarrow'$ \;
+                            }\Else {
+                                $X[i, j] \longleftarrow X[i, j-1]$ \;
+                                $Y[i, j] \longleftarrow '\leftarrow'$ \;
+                            }
+                        }
+                    }
+                }
+              }
+            \caption{Algorithm to calculate the minimum sum.\label{IR}}
+        \end{algorithm}
+
+
+
+        \begin{algorithm}[H]
+            \DontPrintSemicolon
+            \KwData{Array $Y$ calculated in Algorithm 1 and Array $B$ of length $n$}
+            \KwResult{The elements of $Z$ and corresponding index in $B$ printed in reverse}
+            \Begin{
+              $i \longleftarrow m$, $j \longleftarrow n$ \;
+              $v \longleftarrow empty vector$ \;
+              \For{$i > 0$ and $j > 0$}{
+                    \uIf{$Y[i, j] = \nwarrow$}{
+                            $v.pushfront((B[j], j))$\;
+                            $i = i-1$\;
+                            $j = j-1$\;
+                        }
+
+                        \Else{
+                            $j = j-1$\;
+                        }
+                }
+              }
+            \caption{Algorithm to find the values of $Z$.\label{IR}}
+        \end{algorithm}
+
+
+    \section*{Demonstration 1}
+        $A = $
+        \begin{bmatrix}
+            2 & 8 & 4
+        \end{bmatrix} \\
+
+        $B = $
+        \begin{bmatrix}
+            5 & 9 & -6 & 1
+        \end{bmatrix} \\
+
+        $X\footnote{By initializing $X$ this way can skip the parts of the iteration when $i > j$ and $i = 0$} = $
+        \begin{bmatrix}
+            0 & 0 & 0 & 0 & 0 \\
+            \infinity & 0 & 0 & 0 & 0\\
+            \infinity & \infinity & 0 & 0 & 0\\
+            \infinity & \infinity & \infinity & 0 & 0\\
+        \end{bmatrix}
+
+        \subsection*{Algorithm Steps}
+
+            \begin{multicols}{2}
+                \subsubsection*{Iteration 1 : $i=1, j=1$}
+                    $X[0, 0] + \big | A[1] - B[1] \big| = 3$ \\\\
+                    $X[1, 0] = \infinity$ \\\\
+                    Since $3 < \infinity$,  $X[0, 0] = 3$ and $Y[0, 0] = '\nwarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0\\
+                        \infinity & 3 & 0 & 0 & 0\\
+                        \infinity & \infinity & 0 & 0 & 0\\
+                        \infinity & \infinity & \infinity & 0 & 0\\
+                    \end{bmatrix}
+
+                \subsubsection*{Iteration 2 : $i=1, j=2$}
+                    $X[0, 1] + \big | A[1] - B[2] \big| = 7$ \\\\
+                    $X[1, 1] = 3$ \\\\
+                    Since $7 > 3$,  $X[1, 2] = 3$ and $Y[1, 2] = '\leftarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0\\
+                        \infinity & 3 & 3 & 0 & 0\\
+                        \infinity & \infinity & 0 & 0 & 0\\
+                        \infinity & \infinity & \infinity & 0 & 0\\
+                    \end{bmatrix}
+
+                \subsubsection*{Iteration 3 : $i=1, j=3$}
+                    $X[0, 2] + \big | A[1] - B[3] \big| = 8$ \\\\
+                    $X[1, 2] = 3$ \\\\
+                    Since $8 > 3$,  $X[1, 3] = 3$ and $Y[1, 3] = '\leftarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0 \\
+                        \infinity & 3 & 3 & 3 & 0 \\
+                        \infinity & \infinity & 0 & 0 & 0 \\
+                        \infinity & \infinity & \infinity & 0 & 0 \\
+                    \end{bmatrix}
+
+                    \subsubsection*{Iteration 4 : $i=1, j=4$}
+                    $X[0, 3] + \big | A[1] - B[4] \big| = 1$ \\\\
+                    $X[1, 3] = 3$ \\\\
+                    Since $1 < 3$,  $X[1, 4] = 1$ and $Y[1, 4] = '\leftarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0 \\
+                        \infinity & 3 & 3 & 3 & 1 \\
+                        \infinity & \infinity & 0 & 0 & 0 \\
+                        \infinity & \infinity & \infinity & 0 & 0 \\
+                    \end{bmatrix}
+
+
+            \columnbreak
+
+
+                \subsubsection*{Iteration 5 : $i=2, j=2$}
+                    $X[1, 1] + \big | A[2] - B[2] \big| = 4$ \\\\
+                    $X[2, 1] = \infinity$ \\\\
+                    Since $4 < \infinity$,  $X[2, 2] = 4$ and $Y[2, 2] = '\nwarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0 \\
+                        \infinity & 3 & 3 & 3 & 1 \\
+                        \infinity & \infinity & 4 & 0 & 0 \\
+                        \infinity & \infinity & \infinity & 0 & 0 \\
+                    \end{bmatrix}
+
+                \subsubsection*{Iteration 6 : $i=2, j=3$}
+                    $X[1, 2] + \big | A[2] - B[3] \big| = 5$ \\\\
+                    $X[2, 2] = 4$ \\\\
+                    Since $4 < 5,  X[2, 3] = 4$ and $Y[2, 3] = '\leftarrow'$ \\\\
+                    $X = $
+                    \begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0 \\
+                        \infinity & 3 & 3 & 3 & 1 \\
+                        \infinity & \infinity & 4 & 4 & 0 \\
+                        \infinity & \infinity & \infinity & 0 & 0 \\
+                    \end{bmatrix}
+
+                \subsubsection*{Iteration 7 : $i=2, j=4$}
+                    $X[1, 3] + \big | A[2] - B[4] \big| = 10$ \\\\
+                    $X[2, 3] = 4$ \\\\
+                    Since $4 < 10,  X[2, 3] = 4$ and $Y[2, 3] = '\leftarrow'$ \\\\
+                    $X = $
+                        \begin{bmatrix}
+                            0 & 0 & 0 & 0 & 0 \\
+                            \infinity & 3 & 3 & 3 & 1 \\
+                            \infinity & \infinity & 4 & 4 & 4 \\
+                            \infinity & \infinity & \infinity & 0 & 0 \\
+                        \end{bmatrix}
+                \subsubsection*{Iteration 8 : $i=3, j=3$}
+                    $X[2, 2] + \big | A[3] - B[3] \big| = 14$ \\\\
+                    $X[3, 2] = \infinity$ \\\\
+                    Since $14 < \infinity,  X[2, 3] = 14$ and $Y[2, 3] = '\nwarrow'$ \\\\
+                    $X = $
+                        \begin{bmatrix}
+                            0 & 0 & 0 & 0 & 0 \\
+                            \infinity & 3 & 3 & 3 & 1 \\
+                            \infinity & \infinity & 4 & 4 & 4 \\
+                            \infinity & \infinity & \infinity & 14 & 0 \\
+                        \end{bmatrix}
+
+
+
+            \end{multicols}
+
+            \subsubsection*{Iteration 9 : $i=3, j=4$}
+                    $X[2, 3] + \big | A[3] - B[4] \big| = 7$ \\\\
+                    $X[3, 3] = 14$ \\\\
+                    Since $7 < 14,  X[3, 4] = 7$ and $Y[3, 4] = '\nwarrow'$ \\\\
+                    $X = $
+                        \begin{bmatrix}
+                            0 & 0 & 0 & 0 & 0 \\
+                            \infinity & 3 & 3 & 3 & 1 \\
+                            \infinity & \infinity & 4 & 4 & 4 \\
+                            \infinity & \infinity & \infinity & 14 & 7 \\
+                        \end{bmatrix}
+
+        \emph{Therefore the minimum value of $\sum\limits_{i=1}^{3} \big|A[i]-Z[i]\big|$ is  $\boldsymbol{7}$.}
+
+
+        \subsubsection*{Manual Check}
+
+        \begin{enumerate}
+            \item
+            $A = $
+            \begin{bmatrix}
+                2 & 8 & 4
+            \end{bmatrix}
+
+            $C = $
+            \begin{bmatrix}
+                5 & 9 & -6
+            \end{bmatrix}
+
+            $Sum = 14$ \\
+
+        \item
+            $A = $
+            \begin{bmatrix}
+                2 & 8 & 4
+            \end{bmatrix}
+
+            $C = $
+            \begin{bmatrix}
+                5 & 9 & 1
+            \end{bmatrix}
+
+            $Sum = 7$ \\
+
+        \item
+            $A = $
+            \begin{bmatrix}
+                2 & 8 & 4
+            \end{bmatrix}
+
+            $C = $
+            \begin{bmatrix}
+                5 & -6 & 7
+            \end{bmatrix}
+
+            $Sum = 20$ \\
+
+        \item
+            $A = $
+            \begin{bmatrix}
+                2 & 8 & 4
+            \end{bmatrix}
+
+            $C = $
+            \begin{bmatrix}
+                9 & -6 & 1
+            \end{bmatrix}
+
+            $Sum = 24$ \\
+
+        \end{enumerate}
+        \emph{Therefore the minimum sum is 7}
+
+        \subsection*{Deducing the values of $Z$}
+
+        A byproduct of the above algorithmic steps is the matrix $Y$ \\
+
+        $Y = $
+        \begin{bmatrix}
+            - & - & - & - & - \\
+            - & \nwarrow & \leftarrow & \leftarrow & \nwarrow \\
+            - & - & \nwarrow & \leftarrow & \leftarrow \\
+            - & - & - & \nwarrow & \nwarrow \\
+        \end{bmatrix}  \\\\
+
+        \subsubsubsection{\bold{Algorithmic Steps}}
+
+        \begin{enumerate}
+            \item At $Y[3, 4]$, $B[4]$ is pushed front and $i \leftarrow 2, j \leftarrow 3$.
+            \item At $Y[2, 3]$, $i \leftarrow 2, j \leftarrow 2$.
+            \item At $Y[2, 2]$, $B[2]$ is pushed front and $i \leftarrow 1, j \leftarrow 1$.
+            \item At $Y[1, 1]$, $B[1]$ is pushed front and $i \leftarrow 0, j \leftarrow 0$.
+        \end{enumerate}
+
+    \section*{Demonstration 2}
+
+        $B = $
+        \begin{bmatrix}
+            6 & 2 & 1 & 9 & 4 & 5 & -1 \\
+        \end{bmatrix} \\
+        $A = $
+        \begin{bmatrix}
+            -2 & 6 & 3 & 8
+        \end{bmatrix} \\
+
+        $X\footnote{By initializing $X$ this way can skip the parts of the iteration when $i > j$ and $i = 0$} = $
+        \begin{bmatrix}
+            0 & 0 & 0 & 0 & - & - & - & -\\
+            \infinity & 0 & 0 & 0 & 0 & - & - & -\\
+            \infinity & \infinity & 0 & 0 & 0 & 0 & - & -\\
+            \infinity & \infinity & \infinity & 0 & 0 & 0 & 0 & -\\
+            \infinity & \infinity & \infinity & \infinity & 0 & 0 & 0 & 0\\
+        \end{bmatrix}
+
+        \subsection*{Results of the algorithm}
+
+        $X = $
+        \begin{bmatrix}
+            0 & 0 & 0 & 0 & - & - & - & -\\
+            \infinity & 8 & 4 & 3 & 3 & - & - & -\\
+            \infinity & \infinity & 8 & 8 & 6 & 5 & - & -\\
+            \infinity & \infinity & \infinity & 10 & 10 & 7 & 7 & -\\
+            \infinity & \infinity & \infinity & \infinity & 11 & 11 & 10 & 10\\
+        \end{bmatrix} \\\\
+
+        $Y = $
+        \begin{bmatrix}
+            - & - & - & - & - & - & - & -\\
+            - & \nwarrow & \nwarrow & \nwarrow & \leftarrow & - & - & -\\
+            - & - & \nwarrow & \leftarrow & \nwarrow & \nwarrow & - & -\\
+            - & - & - & \nwarrow & \leftarrow & \nwarrow & \leftarrow & -\\
+            - & - & - & - & \nwarrow & \leftarrow & \nwarrow & \leftarrow\\
+        \end{bmatrix} \\\\
+
+        By following the same procedure in previous demonstration we find that the Best Subarray is \\
+
+        $Z = $
+        \begin{bmatrix}
+            1 & 9 & 4 & 5
+        \end{bmatrix} \\
+
+        This can be easily verified by inspection.
+
+    \pagebreak
+
+    \section*{Time and Space Complexities}
+
+        \begin{enumerate}
+            \item \textbf{Algorithm 1} : The time complexity is $O(n \times m)$ and the sapce complexity is $O(n \times m)$. \\
+
+            \underline{Justification} \\
+
+            In Algorithm 1, the outer for loop runs for $m$ times and the inner for loop runs $n$ times. Therefore the time complexity is $\Theta(n \times m)$.\\ The $X$ and $Y$ matrix both occupy $m+1 \times n+1$ space, thus making the space complexity $\Theta(m \times n)$.
+
+            \item \textbf{Algorithm 2} : The time complexity is $O(n)$ and the sapce complexity is $O(m \times n)$. \\
+
+            \underline{Justification} \\
+
+            In Algorithm 2, the loop will run for a maximum of $n$ times, Therefore the time complexity is $\Theta(n)$. The $Y$ matrix occupies $m+1 \times n+1$ space, thus making the space complexity $\Theta(m \times n)$.
+
+            \\\\
+
+        \end{enumerate}
+
+        \emph{Therefore the overall time complexity = $\Theta(m \times n)$} and the overall space complexity is $\Theta(m \times n)$.
+
+
+\end{document}
