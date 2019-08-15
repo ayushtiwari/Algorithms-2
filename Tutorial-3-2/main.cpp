@@ -40,8 +40,6 @@ bool pointCompareY(const point &p, const point &q) {
     return p.y < q.y;
 }
 
-/*********************Function to genrate points******************************/
-
 vector<point> generatePoints(vector<point>::size_type n) {
 
     srand(unsigned(time(NULL)));
@@ -49,23 +47,14 @@ vector<point> generatePoints(vector<point>::size_type n) {
     set<point> unq_pts;
 
     while (unq_pts.size()!=n)
-        unq_pts.insert({10 + rand()%900, 10 + rand()%500});
+        unq_pts.insert({rand()%900, rand()%500});
 
     return vector<point>(unq_pts.begin(), unq_pts.end());
 }
 
-/*****************************************************************************/
-
-
-/*********************Function to compute distance******************************/
-
 double dist(point p, point q) {
     return sqrt((p.x-q.x)*(p.x-q.x) + (p.y-q.y)*(p.y-q.y));
 }
-
-/*****************************************************************************/
-
-/*********************Function to brute force calculate******************************/
 
 closestPair bruteForce(vector<point> points) {
 
@@ -85,10 +74,6 @@ closestPair bruteForce(vector<point> points) {
     return cp;
 }
 
-/*****************************************************************************/
-
-/*********************Function to find in strip of width 2d******************************/
-
 closestPair findInStrip(vector<point> strip, closestPair cp) {
 
     for(int i=0; i<strip.size(); i++) {
@@ -103,10 +88,6 @@ closestPair findInStrip(vector<point> strip, closestPair cp) {
 
     return cp;
 }
-
-/*****************************************************************************/
-
-/*********************Closest pair function******************************/
 
 closestPair findCP(vector<point> sortedX, vector<point> sortedY) {
 
@@ -133,10 +114,6 @@ closestPair findCP(vector<point> sortedX, vector<point> sortedY) {
     return (cp.dist < cpStrip.dist)? cp: cpStrip;
 
 }
-
-/*****************************************************************************/
-
-/*********************Driver Function******************************/
 
 int main() {
 
@@ -201,74 +178,79 @@ int main() {
 	outfile.close();
 
 
+    ifstream preIndex, postIndex;
+    ofstream index;
+    preIndex.open("preIndex.txt");
+    postIndex.open("postIndex.txt");
+    index.open("index.html");
 
-    ofstream final;
-    final.open("final.svg");
+    string line;
 
     vector<string> content;
 
-    content.push_back(string("<svg xmlns=\"http://www.w3.org/2000/svg\"")+ string(">"));
+    while(getline(preIndex, line)) {
+        content.push_back(line);
+    }
+
+    content.push_back(string("<svg width=") + string("1000") + string(" height=") + string("600") + string(">"));
 
     for(int i=0; i<points.size(); i++) {
 
         string s;
-        s += "<circle cx=\"";
+        s += "<circle cx=";
         s += to_string(points[i].x);
-        s += "\" cy=\"";
+        s += " cy=";
         s += to_string(points[i].y);
-        s += "\" r=";
-        s += "\"5\"";
+        s += " r=";
+        s += "5";
         s += " stroke=";
-        s += "\"white\"";
+        s += "white";
         s += " stroke-width=";
-        s += "\"0\"";
+        s += "0";
         s += " fill=";
         // s += "white";
         if(((points[i].x==cp.first.x) && (points[i].y==cp.first.y)) || ((points[i].x == cp.second.x) && (points[i].y == cp.second.y))) {
-            s += "\"red\"";
+            s += "red";
         } else {
-            s += "\"black\"";
+            s += "black";
         }
         s += " />";
 
         content.push_back(s);
 
-        string t;
-        t += "<text x=\"";
-        t += to_string(points[i].x);
-        t += "\" y=\"";
-        t += to_string(points[i].y + 20);
-        t += "\" >";
-        t += string("(") + to_string(points[i].x) + ", " + to_string(points[i].y) + string(")");
-        t += "</text>";
-
-        content.push_back(t);
-
-        s="";
-        s += "<circle cx=\"";
-        s += to_string(points[i].x);
-        s += "\" cy=\"";
-        s += to_string(points[i].y);
-        s += "\" r=\"";
-        s += to_string(cp.dist);
-        s += "\" stroke=";
-        s += "\"green\"";
-        s += " stroke-width=";
-        s += "\"2\"";
-        s += " fill=";
-        s += "\"transparent\"";
-        s += " />";
-        content.push_back(s);
-
+        if(((points[i].x==cp.first.x) && (points[i].y==cp.first.y)) || ((points[i].x == cp.second.x) && (points[i].y == cp.second.y))) {
+            cout << "alpha";
+            string s;
+            s += "<circle cx=";
+            s += to_string(points[i].x);
+            s += " cy=";
+            s += to_string(points[i].y);
+            s += " r=";
+            s += to_string(cp.dist);
+            s += " stroke=";
+            s += "green";
+            s += " stroke-width=";
+            s += "2";
+            s += " fill=";
+            s += "transparent";
+            s += " />";
+            content.push_back(s);
+        }
     }
 
     content.push_back("</svg>");
 
-    for(int i=0; i<content.size(); i++) {
-        final << content[i] << endl;
+    while(getline(postIndex, line)) {
+        content.push_back(line);
     }
 
-    final.close();
+    for(int i=0; i<content.size(); i++) {
+        index << content[i] << endl;
+    }
+
+    preIndex.close();
+    postIndex.close();
+    index.close();
 
 
     return 0;
